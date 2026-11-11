@@ -86,14 +86,14 @@ def escuchar_y_traducir(texto, audio_file, idioma):
         contenidos.append(types.Part.from_bytes(data=audio_file.getvalue(), mime_type=tipo_mime))
     try:
         resp = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-2.5-flash-lite",
             contents=contenidos,
             config=types.GenerateContentConfig(response_mime_type="application/json")
         )
         datos = json.loads(resp.text)
         return datos.get("sintomas", texto), datos.get("rec", "Valorar en enfermería.")
     except Exception as e:
-        return f"🎙️ Audio grabado (Error: {str(e)[:50]})", "Preparar intérprete y tomar signos vitales."
+        return f"🎙️ Audio grabado (Error: {str(e)[:80]})", "Preparar intérprete y tomar signos vitales."
 
 if "idioma" not in st.session_state:
     st.session_state.idioma = "Español"
