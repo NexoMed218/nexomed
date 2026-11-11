@@ -71,7 +71,7 @@ TRADUCCIONES = {
     }
 }
 
-def escuchar_y_traducir(texto, audio_bytes, idioma):
+def escuchar_y_traducir(texto, audio_file, idioma):
     prompt = (
         f"Eres un asistente de triaje hospitalario. El paciente habla '{idioma}'. "
         "Escucha el audio o lee el texto y devuelve un JSON con dos claves exactas: "
@@ -81,8 +81,9 @@ def escuchar_y_traducir(texto, audio_bytes, idioma):
     contenidos = [prompt]
     if texto.strip():
         contenidos.append(texto.strip())
-    if audio_bytes is not None:
-        contenidos.append(types.Part.from_bytes(data=audio_bytes, mime_type="audio/wav"))
+    if audio_file is not None:
+        tipo_mime = audio_file.type or "audio/wav"
+        contenidos.append(types.Part.from_bytes(data=audio_file.getvalue(), mime_type=tipo_mime))
     try:
         resp = client.models.generate_content(
             model="gemini-2.5-flash",
@@ -91,8 +92,8 @@ def escuchar_y_traducir(texto, audio_bytes, idioma):
         )
         datos = json.loads(resp.text)
         return datos.get("sintomas", texto), datos.get("rec", "Valorar en enfermería.")
-    except Exception:
-        return (texto.strip() or "🎙️ Audio recibido (revisar grabación)"), "Preparar intérprete y tomar signos vitales."
+    except Exception as e:
+        return f"🎙️ Audio grabado (Error: {str(e)[:50]})", "Preparar intérprete y tomar signos vitales."
 
 if "idioma" not in st.session_state:
     st.session_state.idioma = "Español"
@@ -131,8 +132,7 @@ with tab1:
         if st.button(t["btn_enviar"], type="primary"):
             if txt.strip() or voz is not None:
                 with st.spinner(t["procesando"]):
-                    b_audio = voz.getvalue() if voz is not None else None
-                    sintomas_es, rec_es = escuchar_y_traducir(txt, b_audio, st.session_state.idioma)
+                    sintomas_es, rec_es = escuchar_y_traducir(txt, voz, st.session_state.idioma)
                     st.session_state.cola.append({"hora": datetime.now(ZONA_MX).strftime("%H:%M"), "nivel": st.session_state.nivel, "idioma": st.session_state.idioma, "sintomas": sintomas_es, "rec": rec_es, "audio": voz})
                 st.success(t["msg_exito"])
             else:
@@ -144,7 +144,12 @@ with tab2:
     for p in sorted(st.session_state.cola, key=lambda x: prioridad[x["nivel"]]):
         with st.container(border=True):
             c1, c2, c3 = st.columns(3)
-            c1.write(f"**{p['nivel']}** | 🕒 {p['hora']}")
+            if p["nivel"] == "ROJO":
+                c1.error(f"🔴 **ROJO**\n\n🕒 {p['hora']}")
+            elif p["nivel"] == "AMARILLO":
+                c1.warning(f"🟡 **AMARILLO**\n\n🕒 {p['hora']}")
+            else:
+                c1.success(f"🟢 **VERDE**\n\n🕒 {p['hora']}")
             c2.write(f"**Idioma:** {p['idioma']}\n\n**Síntomas traducidos:** {p['sintomas']}")
             if p["audio"] is not None:
                 c2.audio(p["audio"])
