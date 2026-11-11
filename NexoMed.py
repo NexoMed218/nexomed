@@ -119,9 +119,30 @@ if "nivel" not in st.session_state:
 if "cola" not in st.session_state:
     st.session_state.cola = []
 
-tab1, tab2 = st.tabs(["🧑‍⚕️ Pantalla Paciente", "💻 Pantalla Doctor"])
+# Detectar qué vista abrir según el enlace (?vista=doctor o normal para paciente)
+vista_actual = st.query_params.get("vista", "paciente")
 
-with tab1:
+if vista_actual == "doctor":
+    st.title("💻 NexoMed — Panel Doctor")
+    st.caption("Vista exclusiva para recepción médica y personal de salud.")
+    if not st.session_state.cola:
+        st.info("No hay pacientes en espera en este momento.")
+    else:
+        prioridad = {"ROJO": 1, "AMARILLO": 2, "VERDE": 3}
+        for p in sorted(st.session_state.cola, key=lambda x: prioridad[x["nivel"]]):
+            with st.container(border=True):
+                c1, c2, c3 = st.columns(3)
+                if p["nivel"] == "ROJO":
+                    c1.error(f"🔴 **ROJO**\n\n🕒 {p['hora']}")
+                elif p["nivel"] == "AMARILLO":
+                    c1.warning(f"🟡 **AMARILLO**\n\n🕒 {p['hora']}")
+                else:
+                    c1.success(f"🟢 **VERDE**\n\n🕒 {p['hora']}")
+                c2.write(f"**Idioma:** {p['idioma']}\n\n**Síntomas traducidos:** {p['sintomas']}")
+                if p["audio"] is not None:
+                    c2.audio(p["audio"])
+                c3.info(p["rec"])
+else:
     t = TRADUCCIONES[st.session_state.idioma]
     st.title("🏥 NexoMed")
     st.caption(t["subtitulo"])
@@ -154,20 +175,3 @@ with tab1:
                 st.success(t["msg_exito"])
             else:
                 st.warning(t["msg_vacio"])
-
-with tab2:
-    st.title("💻 NexoMed — Panel Doctor")
-    prioridad = {"ROJO": 1, "AMARILLO": 2, "VERDE": 3}
-    for p in sorted(st.session_state.cola, key=lambda x: prioridad[x["nivel"]]):
-        with st.container(border=True):
-            c1, c2, c3 = st.columns(3)
-            if p["nivel"] == "ROJO":
-                c1.error(f"🔴 **ROJO**\n\n🕒 {p['hora']}")
-            elif p["nivel"] == "AMARILLO":
-                c1.warning(f"🟡 **AMARILLO**\n\n🕒 {p['hora']}")
-            else:
-                c1.success(f"🟢 **VERDE**\n\n🕒 {p['hora']}")
-            c2.write(f"**Idioma:** {p['idioma']}\n\n**Síntomas traducidos:** {p['sintomas']}")
-            if p["audio"] is not None:
-                c2.audio(p["audio"])
-            c3.info(p["rec"])
