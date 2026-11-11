@@ -199,3 +199,50 @@ with tab_paciente:
         
         if st.button(t["btn_enviar"], type="primary"):
             if sintomas.strip() or audio_voz is not None:
+with st.spinner(t["procesando"]):
+bytes_audio = audio_voz.getvalue() if audio_voz is not None else None
+sintomas_traducidos, rec_ia = analizar_sintomas_ia(sintomas, bytes_audio, st.session_state.idioma)
+st.session_state.cola_pacientes.append({
+"hora": (ZONA_MX).strftime("%H:%M"),
+"nivel": st.session_state.nivel,
+"idioma": st.session_state.idioma,
+"sintomas": sintomas_traducidos,
+"recomendacion": rec_ia
+})
+st.success(t["msg_exito"])
+else:
+st.warning(t["msg_vacio"])
+st.divider()
+st.caption(f"⚕️ {t['disclaimer']}")
+with tab_doctor:
+st.title("💻 NexoMed — Panel de Recepción Médica")
+st.write("Lista de pacientes ordenada automáticamente por prioridad de color e idioma detectado.")
+if not st.session_state.cola_pacientes:
+("No hay pacientes en espera en este momento.")
+else:
+prioridad = {"ROJO": 1, "AMARILLO": 2, "VERDE": 3}
+pacientes_ordenados = sorted(
+st.session_state.cola_pacientes,
+key=lambda x: prioridad[x["nivel"]]
+)
+for idx, p in enumerate(pacientes_ordenados):
+with st.container(border=True):
+col1, col2, col3 = st.columns(3)
+with col1:
+if p["nivel"] == "ROJO":
+st.error(f"🔴 ROJO\n\n🕒 {p['hora']}")
+elif p["nivel"] == "AMARILLO":
+st.warning(f"🟡 AMARILLO\n\n🕒 {p['hora']}")
+else:
+st.success(f"🟢 VERDE\n\n🕒 {p['hora']}")
+with col2:
+st.markdown(f"Idioma del paciente: {p['idioma']}")
+st.markdown(f"Síntomas (Traducidos al Español):\n> {p['sintomas']}")
+with col3:
+st.markdown("Acción operativa recomendada:")
+(p["recomendacion"])
+if st.button("🗑️ Limpiar lista de atendidos"):
+st.session_state.cola_pacientes = []
+st.rerun()
+
+
