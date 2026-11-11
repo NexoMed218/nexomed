@@ -8,6 +8,13 @@ st.set_page_config(page_title="NexoMed - Triaje Multilingüe", page_icon="🏥",
 ZONA_MX = timezone(timedelta(hours=-6))
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
+# Memoria compartida en la nube entre el celular del paciente y la laptop del doctor
+@st.cache_resource
+def obtener_cola_global():
+    return []
+
+cola_global = obtener_cola_global()
+
 TRADUCCIONES = {
     "Español": {
         "bandera": "🇲🇽 Español", "subtitulo": "Tu puente de comunicación médica",
@@ -116,20 +123,25 @@ if "idioma" not in st.session_state:
     st.session_state.idioma = "Español"
 if "nivel" not in st.session_state:
     st.session_state.nivel = None
-if "cola" not in st.session_state:
-    st.session_state.cola = []
 
-# Detectar qué vista abrir según el enlace (?vista=doctor o normal para paciente)
 vista_actual = st.query_params.get("vista", "paciente")
 
 if vista_actual == "doctor":
     st.title("💻 NexoMed — Panel Doctor")
     st.caption("Vista exclusiva para recepción médica y personal de salud.")
-    if not st.session_state.cola:
+    
+    col_btn1, col_btn2 = st.columns([1, 4])
+    if col_btn1.button("🔄 Actualizar lista", type="primary"):
+        st.rerun()
+    if col_btn2.button("🗑️ Limpiar atendidos"):
+        cola_global.clear()
+        st.rerun()
+
+    if not cola_global:
         st.info("No hay pacientes en espera en este momento.")
     else:
         prioridad = {"ROJO": 1, "AMARILLO": 2, "VERDE": 3}
-        for p in sorted(st.session_state.cola, key=lambda x: prioridad[x["nivel"]]):
+        for p in sorted(cola_global, key=lambda x: prioridad[x["nivel"]]):
             with st.container(border=True):
                 c1, c2, c3 = st.columns(3)
                 if p["nivel"] == "ROJO":
@@ -139,8 +151,8 @@ if vista_actual == "doctor":
                 else:
                     c1.success(f"🟢 **VERDE**\n\n🕒 {p['hora']}")
                 c2.write(f"**Idioma:** {p['idioma']}\n\n**Síntomas traducidos:** {p['sintomas']}")
-                if p["audio"] is not None:
-                    c2.audio(p["audio"])
+                if p["audio_bytes"] is not None:
+                    c2.audio(p["audio_bytes"], format=p["audio_mime"])
                 c3.info(p["rec"])
 else:
     t = TRADUCCIONES[st.session_state.idioma]
@@ -156,7 +168,7 @@ else:
     st.subheader(t["instruccion"])
     if st.button(t["rojo"], type="primary", use_container_width=True):
         st.session_state.nivel = "ROJO"
-        st.session_state.cola.append({"hora": datetime.now(ZONA_MX).strftime("%H:%M"), "nivel": "ROJO", "idioma": st.session_state.idioma, "sintomas": "⚠️ ALERTA ROJA INMEDIATA", "rec": "🚨 Atención inmediata en sala de choque.", "audio": None})
+        cola_global.append({"hora": datetime.now(ZONA_MX).strftime("%H:%M"), "nivel": "ROJO", "idioma": st.session_state.idioma, "sintomas": "⚠️ ALERTA ROJA INMEDIATA", "rec": "🚨 Atención inmediata en sala de choque.", "audio_bytes": None, "audio_mime": None})
     if st.button(t["amarillo"], use_container_width=True):
         st.session_state.nivel = "AMARILLO"
     if st.button(t["verde"], use_container_width=True):
@@ -171,7 +183,9 @@ else:
             if txt.strip() or voz is not None:
                 with st.spinner(t["procesando"]):
                     sintomas_es, rec_es = escuchar_y_traducir(txt, voz, st.session_state.idioma)
-                    st.session_state.cola.append({"hora": datetime.now(ZONA_MX).strftime("%H:%M"), "nivel": st.session_state.nivel, "idioma": st.session_state.idioma, "sintomas": sintomas_es, "rec": rec_es, "audio": voz})
+                    b_audio = voz.getvalue() if voz is not None else None
+                    m_audio = (voz.type or "audio/wav") if voz is not None else None
+                    cola_global.append({"hora": datetime.now(ZONA_MX).strftime("%H:%M"), "nivel": st.session_state.nivel, "idioma": st.session_state.idioma, "sintomas": sintomas_es, "rec": rec_es, "audio_bytes": b_audio, "audio_mime": m_audio})
                 st.success(t["msg_exito"])
             else:
                 st.warning(t["msg_vacio"])
