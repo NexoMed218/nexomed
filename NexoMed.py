@@ -4,124 +4,85 @@ from google import genai
 from google.genai import types
 import json
 
-st.set_page_config(page_title="NexoMed - Sistema de Triaje Multilingüe", page_icon="🏥", layout="wide")
-
+st.set_page_config(page_title="NexoMed - Triaje Multilingüe", page_icon="🏥", layout="wide")
 ZONA_MX = timezone(timedelta(hours=-6))
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 TRADUCCIONES = {
     "Español": {
-        "bandera": "🇲🇽 Español",
-        "subtitulo": "Tu puente de comunicación médica en cualquier idioma",
+        "bandera": "🇲🇽 Español", "subtitulo": "Tu puente de comunicación médica",
         "instruccion": "Seleccione su nivel de malestar:",
-        "verde": "🟢 Malestar Leve (Consulta General)",
-        "amarillo": "🟡 Malestar Moderado (Dolor Persistente)",
-        "rojo": "🔴 EMERGENCIA INMEDIATA",
-        "msg_rojo": "🚨 ALERTA ENVIADA AL MÉDICO. Permanezca en su lugar, la ayuda va en camino.",
+        "verde": "🟢 Malestar Leve", "amarillo": "🟡 Malestar Moderado", "rojo": "🔴 EMERGENCIA INMEDIATA",
+        "msg_rojo": "🚨 ALERTA ENVIADA AL MÉDICO. Permanezca en su lugar.",
         "msg_mic": "🎙️ Describa sus síntomas por voz o escríbalos abajo:",
-        "placeholder": "Ej. Me duele mucho la cabeza desde ayer...",
-        "btn_enviar": "Enviar al médico",
-        "procesando": "⏳ Procesando y traduciendo síntomas para el equipo médico...",
-        "msg_exito": "✅ Sus datos fueron enviados y traducidos para el doctor.",
-        "msg_vacio": "⚠️ Por favor, escriba o grabe sus síntomas antes de enviar.",
-        "disclaimer": "Aviso: NexoMed es una herramienta de comunicación y triaje. No sustituye valoración médica."
+        "placeholder": "Ej. Me duele mucho la cabeza...", "btn_enviar": "Enviar al médico",
+        "procesando": "⏳ Escuchando y traduciendo síntomas...",
+        "msg_exito": "✅ Síntomas enviados y traducidos al doctor.", "msg_vacio": "⚠️ Escriba o grabe sus síntomas."
     },
     "English": {
-        "bandera": "🇺🇸 English",
-        "subtitulo": "Your medical communication bridge in any language",
+        "bandera": "🇺🇸 English", "subtitulo": "Your medical communication bridge",
         "instruccion": "Select your level of discomfort:",
-        "verde": "🟢 Mild Discomfort (General Checkup)",
-        "amarillo": "🟡 Moderate Discomfort (Persistent Pain)",
-        "rojo": "🔴 IMMEDIATE EMERGENCY",
-        "msg_rojo": "🚨 ALERT SENT TO DOCTOR. Stay where you are, help is on the way.",
-        "msg_mic": "🎙️ Describe your symptoms by voice or type them below:",
-        "placeholder": "E.g. I have had a severe headache since yesterday...",
-        "btn_enviar": "Send to doctor",
-        "procesando": "⏳ Processing and translating symptoms for the medical team...",
-        "msg_exito": "✅ Your data was sent and translated for the doctor.",
-        "msg_vacio": "⚠️ Please write or record your symptoms before sending.",
-        "disclaimer": "Disclaimer: NexoMed is a communication and triage tool. Does not replace medical evaluation."
+        "verde": "🟢 Mild Discomfort", "amarillo": "🟡 Moderate Discomfort", "rojo": "🔴 IMMEDIATE EMERGENCY",
+        "msg_rojo": "🚨 ALERT SENT TO DOCTOR. Stay where you are.",
+        "msg_mic": "🎙️ Describe your symptoms by voice or text:",
+        "placeholder": "E.g. Severe headache...", "btn_enviar": "Send to doctor",
+        "procesando": "⏳ Listening and translating symptoms...",
+        "msg_exito": "✅ Symptoms sent and translated.", "msg_vacio": "⚠️ Write or record symptoms."
     },
     "Français": {
-        "bandera": "🇫🇷 Français",
-        "subtitulo": "Votre pont de communication médicale dans toutes les langues",
+        "bandera": "🇫🇷 Français", "subtitulo": "Votre pont de communication médicale",
         "instruccion": "Sélectionnez votre niveau d'inconfort :",
-        "verde": "🟢 Inconfort Léger (Consultation Générale)",
-        "amarillo": "🟡 Inconfort Modéré (Douleur Persistante)",
-        "rojo": "🔴 URGENCE IMMÉDIATE",
-        "msg_rojo": "🚨 ALERTE ENVOYÉE AU MÉDECIN. Restez sur place, les secours arrivent.",
-        "msg_mic": "🎙️ Décrivez vos symptômes à la voix ou écrivez-les ci-dessous :",
-        "placeholder": "Ex. J'ai très mal à la tête depuis hier...",
-        "btn_enviar": "Envoyer au médecin",
-        "procesando": "⏳ Traitement et traduction des symptômes pour l'équipe médicale...",
-        "msg_exito": "✅ Vos données ont été envoyées et traduites pour le médecin.",
-        "msg_vacio": "⚠️ Veuillez écrire ou enregistrer vos symptômes avant d'envoyer.",
-        "disclaimer": "Avis : NexoMed est un outil de communication et de triage. Ne remplace pas un avis médical."
+        "verde": "🟢 Inconfort Léger", "amarillo": "🟡 Inconfort Modéré", "rojo": "🔴 URGENCE IMMÉDIATE",
+        "msg_rojo": "🚨 ALERTE ENVOYÉE AU MÉDECIN. Restez sur place.",
+        "msg_mic": "🎙️ Décrivez vos symptômes :",
+        "placeholder": "Ex. Mal à la tête...", "btn_enviar": "Envoyer",
+        "procesando": "⏳ Écoute et traduction des symptômes...",
+        "msg_exito": "✅ Symptômes envoyés et traduits.", "msg_vacio": "⚠️ Écrivez ou enregistrez vos symptômes."
     },
     "Mandarin": {
-        "bandera": "🇨🇳 中文 (Mandarín)",
-        "subtitulo": "跨越语言障碍的医疗沟通桥梁",
+        "bandera": "🇨🇳 中文 (Mandarín)", "subtitulo": "医疗沟通桥梁",
         "instruccion": "请选择您的不适程度：",
-        "verde": "🟢 轻度不适（常规检查）",
-        "amarillo": "🟡 中度不适（持续疼痛）",
-        "rojo": "🔴 紧急情况",
-        "msg_rojo": "🚨 已向医生发送警报。请留在原地，救援人员正在赶来。",
-        "msg_mic": "🎙️ 请语音描述您的症状或在下方输入：",
-        "placeholder": "例如：从昨天开始我头疼得很厉害……",
-        "btn_enviar": "发送给医生",
-        "procesando": "⏳ 正在为医疗团队处理和翻译症状...",
-        "msg_exito": "✅ 您的数据已发送并翻译给医生。",
-        "msg_vacio": "⚠️ 发送前请填写或录制您的症状。",
-        "disclaimer": "免责声明：NexoMed 是沟通与分诊工具，不能替代专业医疗评估。"
+        "verde": "🟢 轻度不适", "amarillo": "🟡 中度不适", "rojo": "🔴 紧急情况",
+        "msg_rojo": "🚨 已向医生发送警报。请留在原地。",
+        "msg_mic": "🎙️ 请语音或文字描述症状：",
+        "placeholder": "例如：头疼...", "btn_enviar": "发送",
+        "procesando": "⏳ 正在翻译症状...",
+        "msg_exito": "✅ 已发送给医生。", "msg_vacio": "⚠️ 请填写或录制症状。"
     },
     "Deutsch": {
-        "bandera": "🇩🇪 Deutsch",
-        "subtitulo": "Ihre medizinische Kommunikationsbrücke in jeder Sprache",
+        "bandera": "🇩🇪 Deutsch", "subtitulo": "Medizinische Kommunikationsbrücke",
         "instruccion": "Wählen Sie Ihren Beschwerdegrad:",
-        "verde": "🟢 Leichte Beschwerden (Allgemeine Untersuchung)",
-        "amarillo": "🟡 Mäßige Beschwerden (Anhaltende Schmerzen)",
-        "rojo": "🔴 SOFORTIGER NOTFALL",
-        "msg_rojo": "🚨 ALARM AN DEN ARZT GESENDET. Bleiben Sie an Ihrem Platz, Hilfe ist unterwegs.",
-        "msg_mic": "🎙️ Beschreiben Sie Ihre Symptome per Sprache oder Text:",
-        "placeholder": "Z.B. Ich habe seit gestern starke Kopfschmerzen...",
-        "btn_enviar": "An Arzt senden",
-        "procesando": "⏳ Symptome werden für das Ärzteteam verarbeitet und übersetzt...",
-        "msg_exito": "✅ Ihre Daten wurden gesendet und für den Arzt übersetzt.",
-        "msg_vacio": "⚠️ Bitte geben Sie Ihre Symptome ein oder nehmen Sie sie auf.",
-        "disclaimer": "Hinweis: NexoMed ist ein Kommunikations- und Triage-Tool. Ersetzt keine ärztliche Untersuchung."
+        "verde": "🟢 Leichte Beschwerden", "amarillo": "🟡 Mäßige Beschwerden", "rojo": "🔴 NOTFALL",
+        "msg_rojo": "🚨 ALARM GESENDET. Bleiben Sie hier.",
+        "msg_mic": "🎙️ Beschreiben Sie Ihre Symptome:",
+        "placeholder": "Z.B. Kopfschmerzen...", "btn_enviar": "Senden",
+        "procesando": "⏳ Symptome werden übersetzt...",
+        "msg_exito": "✅ An den Arzt gesendet.", "msg_vacio": "⚠️ Bitte Symptome angeben."
     },
     "Português": {
-        "bandera": "🇧🇷 Português",
-        "subtitulo": "Sua ponte de comunicação médica em qualquer idioma",
-        "instruccion": "Selecione o seu nível de desconforto:",
-        "verde": "🟢 Desconforto Leve (Consulta Geral)",
-        "amarillo": "🟡 Desconforto Moderado (Dor Persistente)",
-        "rojo": "🔴 EMERGÊNCIA IMEDIATA",
-        "msg_rojo": "🚨 ALERTA ENVIADO AO MÉDICO. Permaneça no seu lugar, a ajuda está a caminho.",
-        "msg_mic": "🎙️ Descreva os seus sintomas por voz ou escreva abaixo:",
-        "placeholder": "Ex. Estou com muita dor de cabeça desde ontem...",
-        "btn_enviar": "Enviar ao médico",
-        "procesando": "⏳ Processando e traduzindo sintomas para a equipe médica...",
-        "msg_exito": "✅ Seus dados foram enviados e traduzidos para o médico.",
-        "msg_vacio": "⚠️ Por favor, escreva ou grave seus sintomas antes de enviar.",
-        "disclaimer": "Aviso: NexoMed é uma ferramenta de comunicação e triagem. Não substitui avaliação médica."
+        "bandera": "🇧🇷 Português", "subtitulo": "Ponte de comunicação médica",
+        "instruccion": "Selecione o nível de desconforto:",
+        "verde": "🟢 Desconforto Leve", "amarillo": "🟡 Desconforto Moderado", "rojo": "🔴 EMERGÊNCIA",
+        "msg_rojo": "🚨 ALERTA ENVIADO. Permaneça no local.",
+        "msg_mic": "🎙️ Descreva os sintomas:",
+        "placeholder": "Ex. Dor de cabeça...", "btn_enviar": "Enviar",
+        "procesando": "⏳ Traduzindo sintomas...",
+        "msg_exito": "✅ Enviado ao médico.", "msg_vacio": "⚠️ Escreva ou grave os sintomas."
     }
 }
 
-def analizar_sintomas_ia(texto, audio_bytes, idioma_origen):
+def escuchar_y_traducir(texto, audio_bytes, idioma):
     prompt = (
-        f"Eres un asistente de triaje y traducción hospitalaria. El paciente seleccionó el idioma '{idioma_origen}'. "
-        "Escucha el audio o lee el texto proporcionado. "
-        "Responde EXCLUSIVAMENTE en formato JSON válido con dos claves exactas: "
-        "'sintomas_es' (transcripción y traducción clara al español de los síntomas que reporta el paciente) y "
-        "'recomendacion' (una acción operativa breve de recepción o enfermería en español, sin dar diagnósticos médicos)."
+        f"Eres un asistente de triaje hospitalario. El paciente habla '{idioma}'. "
+        "Escucha el audio o lee el texto y devuelve un JSON con dos claves exactas: "
+        "'sintomas' (transcripción exacta de lo que dijo el paciente traducida al español) y "
+        "'rec' (acción operativa breve para enfermería en español, sin dar diagnósticos)."
     )
     contenidos = [prompt]
     if texto.strip():
-        contenidos.append(f"Texto del paciente: {texto.strip()}")
+        contenidos.append(texto.strip())
     if audio_bytes is not None:
         contenidos.append(types.Part.from_bytes(data=audio_bytes, mime_type="audio/wav"))
-
     try:
         resp = client.models.generate_content(
             model="gemini-2.5-flash",
@@ -129,120 +90,62 @@ def analizar_sintomas_ia(texto, audio_bytes, idioma_origen):
             config=types.GenerateContentConfig(response_mime_type="application/json")
         )
         datos = json.loads(resp.text)
-        return datos.get("sintomas_es", texto), datos.get("recomendacion", "Pasar a valoración de enfermería.")
+        return datos.get("sintomas", texto), datos.get("rec", "Valorar en enfermería.")
     except Exception:
-        fallback = texto.strip() if texto.strip() else "Nota de voz recibida (revisar audio)."
-        return fallback, "Preparar intérprete y tomar signos vitales."
+        return (texto.strip() or "🎙️ Audio recibido (revisar grabación)"), "Preparar intérprete y tomar signos vitales."
 
 if "idioma" not in st.session_state:
     st.session_state.idioma = "Español"
 if "nivel" not in st.session_state:
     st.session_state.nivel = None
-if "cola_pacientes" not in st.session_state:
-    st.session_state.cola_pacientes = [
-        {
-            "hora": "20:10",
-            "nivel": "AMARILLO",
-            "idioma": "English",
-            "sintomas": "Dolor abdominal intenso y náuseas desde la mañana (Original: Severe stomach pain and nausea).",
-            "recomendacion": "🟡 Pasar a toma de signos vitales en menos de 15 min y preparar traducción."
-        }
-    ]
+if "cola" not in st.session_state:
+    st.session_state.cola = []
 
-tab_paciente, tab_doctor = st.tabs(["🧑‍⚕️ Pantalla Paciente", "💻 Pantalla Doctor"])
+tab1, tab2 = st.tabs(["🧑‍⚕️ Pantalla Paciente", "💻 Pantalla Doctor"])
 
-with tab_paciente:
+with tab1:
     t = TRADUCCIONES[st.session_state.idioma]
-    
     st.title("🏥 NexoMed")
     st.caption(t["subtitulo"])
-    st.write("Seleccione su idioma / Select your language / 选择语言:")
-
     cols = st.columns(3)
-    idiomas_lista = list(TRADUCCIONES.keys())
-
-    for i, lang in enumerate(idiomas_lista):
-        with cols[i % 3]:
-            if st.button(TRADUCCIONES[lang]["bandera"], key=f"btn_{lang}", use_container_width=True):
-                st.session_state.idioma = lang
-                st.session_state.nivel = None
-                st.rerun()
-
+    for i, lang in enumerate(TRADUCCIONES.keys()):
+        if cols[i % 3].button(TRADUCCIONES[lang]["bandera"], key=f"b_{lang}", use_container_width=True):
+            st.session_state.idioma = lang
+            st.session_state.nivel = None
+            st.rerun()
     st.divider()
     st.subheader(t["instruccion"])
-
     if st.button(t["rojo"], type="primary", use_container_width=True):
         st.session_state.nivel = "ROJO"
-        st.session_state.cola_pacientes.append({
-            "hora": datetime.now(ZONA_MX).strftime("%H:%M"),
-            "nivel": "ROJO",
-            "idioma": st.session_state.idioma,
-            "sintomas": "⚠️ ALERTA ROJA ACTIVADA POR EL PACIENTE (Emergencia inmediata)",
-            "recomendacion": "🚨 Atención inmediata en sala de choque. Solicitar intérprete urgente."
-        })
-
+        st.session_state.cola.append({"hora": datetime.now(ZONA_MX).strftime("%H:%M"), "nivel": "ROJO", "idioma": st.session_state.idioma, "sintomas": "⚠️ ALERTA ROJA INMEDIATA", "rec": "🚨 Atención inmediata en sala de choque.", "audio": None})
     if st.button(t["amarillo"], use_container_width=True):
         st.session_state.nivel = "AMARILLO"
-
     if st.button(t["verde"], use_container_width=True):
         st.session_state.nivel = "VERDE"
-
-    st.divider()
-
     if st.session_state.nivel == "ROJO":
         st.error(t["msg_rojo"])
     elif st.session_state.nivel in ["AMARILLO", "VERDE"]:
         st.info(t["msg_mic"])
-        
-        audio_voz = st.audio_input("Grabar voz / Record voice")
-        sintomas = st.text_area("Síntomas", placeholder=t["placeholder"], label_visibility="collapsed")
-        
+        voz = st.audio_input("Voz / Voice")
+        txt = st.text_area("Síntomas", placeholder=t["placeholder"], label_visibility="collapsed")
         if st.button(t["btn_enviar"], type="primary"):
-            if sintomas.strip() or audio_voz is not None:
-with st.spinner(t["procesando"]):
-bytes_audio = audio_voz.getvalue() if audio_voz is not None else None
-sintomas_traducidos, rec_ia = analizar_sintomas_ia(sintomas, bytes_audio, st.session_state.idioma)
-st.session_state.cola_pacientes.append({
-"hora": (ZONA_MX).strftime("%H:%M"),
-"nivel": st.session_state.nivel,
-"idioma": st.session_state.idioma,
-"sintomas": sintomas_traducidos,
-"recomendacion": rec_ia
-})
-st.success(t["msg_exito"])
-else:
-st.warning(t["msg_vacio"])
-st.divider()
-st.caption(f"⚕️ {t['disclaimer']}")
-with tab_doctor:
-st.title("💻 NexoMed — Panel de Recepción Médica")
-st.write("Lista de pacientes ordenada automáticamente por prioridad de color e idioma detectado.")
-if not st.session_state.cola_pacientes:
-("No hay pacientes en espera en este momento.")
-else:
-prioridad = {"ROJO": 1, "AMARILLO": 2, "VERDE": 3}
-pacientes_ordenados = sorted(
-st.session_state.cola_pacientes,
-key=lambda x: prioridad[x["nivel"]]
-)
-for idx, p in enumerate(pacientes_ordenados):
-with st.container(border=True):
-col1, col2, col3 = st.columns(3)
-with col1:
-if p["nivel"] == "ROJO":
-st.error(f"🔴 ROJO\n\n🕒 {p['hora']}")
-elif p["nivel"] == "AMARILLO":
-st.warning(f"🟡 AMARILLO\n\n🕒 {p['hora']}")
-else:
-st.success(f"🟢 VERDE\n\n🕒 {p['hora']}")
-with col2:
-st.markdown(f"Idioma del paciente: {p['idioma']}")
-st.markdown(f"Síntomas (Traducidos al Español):\n> {p['sintomas']}")
-with col3:
-st.markdown("Acción operativa recomendada:")
-(p["recomendacion"])
-if st.button("🗑️ Limpiar lista de atendidos"):
-st.session_state.cola_pacientes = []
-st.rerun()
+            if txt.strip() or voz is not None:
+                with st.spinner(t["procesando"]):
+                    b_audio = voz.getvalue() if voz is not None else None
+                    sintomas_es, rec_es = escuchar_y_traducir(txt, b_audio, st.session_state.idioma)
+                    st.session_state.cola.append({"hora": datetime.now(ZONA_MX).strftime("%H:%M"), "nivel": st.session_state.nivel, "idioma": st.session_state.idioma, "sintomas": sintomas_es, "rec": rec_es, "audio": voz})
+                st.success(t["msg_exito"])
+            else:
+                st.warning(t["msg_vacio"])
 
-
+with tab2:
+    st.title("💻 NexoMed — Panel Doctor")
+    prioridad = {"ROJO": 1, "AMARILLO": 2, "VERDE": 3}
+    for p in sorted(st.session_state.cola, key=lambda x: prioridad[x["nivel"]]):
+        with st.container(border=True):
+            c1, c2, c3 = st.columns(3)
+            c1.write(f"**{p['nivel']}** | 🕒 {p['hora']}")
+            c2.write(f"**Idioma:** {p['idioma']}\n\n**Síntomas traducidos:** {p['sintomas']}")
+            if p["audio"] is not None:
+                c2.audio(p["audio"])
+            c3.info(p["rec"])
