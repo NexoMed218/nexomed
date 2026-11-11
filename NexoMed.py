@@ -85,10 +85,19 @@ def escuchar_y_traducir(texto, audio_file, idioma):
         tipo_mime = audio_file.type or "audio/wav"
         contenidos.append(types.Part.from_bytes(data=audio_file.getvalue(), mime_type=tipo_mime))
 
-    modelos_a_probar = ["gemini-2.0-flash", "gemini-flash-latest", "gemini-2.5-flash", "gemini-2.0-flash-lite"]
-    ultimo_error = ""
+    try:
+        disponibles = [
+            m.name.replace("models/", "")
+            for m in client.models.list()
+            if "flash" in m.name.lower() and "image" not in m.name.lower() and "tts" not in m.name.lower()
+        ]
+        if not disponibles:
+            disponibles = ["gemini-2.5-flash", "gemini-2.0-flash"]
+    except Exception:
+        disponibles = ["gemini-2.5-flash", "gemini-2.0-flash"]
 
-    for modelo in modelos_a_probar:
+    ultimo_error = ""
+    for modelo in disponibles:
         try:
             resp = client.models.generate_content(
                 model=modelo,
@@ -101,7 +110,7 @@ def escuchar_y_traducir(texto, audio_file, idioma):
             ultimo_error = str(e)
             continue
 
-    return f"🎙️ Audio grabado (Detalle: {ultimo_error[:70]})", "Preparar intérprete y tomar signos vitales."
+    return f"🎙️ Audio grabado (Info: {ultimo_error[:70]})", "Preparar intérprete y tomar signos vitales."
 
 if "idioma" not in st.session_state:
     st.session_state.idioma = "Español"
