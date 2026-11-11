@@ -117,12 +117,8 @@ if "cola_pacientes" not in st.session_state:
         }
     ]
 
-# Pestañas superiores para cambiar entre Paciente y Doctor
 tab_paciente, tab_doctor = st.tabs(["🧑‍⚕️ Pantalla Paciente", "💻 Pantalla Doctor"])
 
-# ==========================================
-# PÁGINA 1: PACIENTE
-# ==========================================
 with tab_paciente:
     t = TRADUCCIONES[st.session_state.idioma]
     
@@ -188,9 +184,6 @@ with tab_paciente:
     st.divider()
     st.caption(f"⚕️ {t['disclaimer']}")
 
-# ==========================================
-# PÁGINA 2: DOCTOR
-# ==========================================
 with tab_doctor:
     st.title("💻 NexoMed — Panel de Recepción Médica")
     st.write("Lista de pacientes ordenada automáticamente por prioridad de color e idioma detectado.")
@@ -206,9 +199,17 @@ with tab_doctor:
 
         for idx, p in enumerate(pacientes_ordenados):
             with st.container(border=True):
-                col1, col2, col3 = st.columns([1, 2, 2])
+                col1, col2, col3 = st.columns(3)
                 
                 with col1:
                     if p["nivel"] == "ROJO":
                         st.error(f"🔴 **ROJO**\n\n🕒 {p['hora']}")
                     elif p["nivel"] == "AMARILLO":
+                        st.warning(f"🟡 **AMARILLO**\n\n🕒 {p['hora']}")
+                    else:
+                        st.success(f"🟢 **VERDE**\n\n🕒 {p['hora']}")
+                
+                with col2:
+                    st.markdown(f"**Idioma del paciente:** {p['idioma']}")
+                    st.markdown(f"**Síntomas reportados:**\n> {p['sintomas']}")
+                
