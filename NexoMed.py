@@ -196,8 +196,8 @@ if vista_actual == "doctor":
                     c2.audio(p["audio_bytes"], format=p["audio_mime"])
                 c3.info(p["rec"])
 if c3.button("✅ Marcar como atendido", key=f"atender_{idx}{p['hora']}"):
-cola_global.remove(p)
-st.rerun()
+    cola_global.remove(p)
+    st.rerun()
 else:
 t = TRADUCCIONES[st.session_state.idioma]
 st.title("🏥 NexoMed")
