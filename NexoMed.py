@@ -192,41 +192,42 @@ if vista_actual == "doctor":
                 if p["audio_bytes"] is not None:
                     c2.audio(p["audio_bytes"], format=p["audio_mime"])
                 c3.info(p["rec"])
-if c3.button("✅ Marcar como atendido", key=f"atender_{idx}_{p['hora']}"):
-cola_global.remove(p)
-st.rerun()
-st.stop()
+                if c3.button("Marcar como atendido", key=f"atender_{idx}_{p['hora']}"):
+                    cola_global.remove(p)
+                    st.rerun()
+    st.stop()
+
 t = TRADUCCIONES[st.session_state.idioma]
-st.title("🏥 NexoMed")
+st.title("NexoMed")
 st.caption(t["subtitulo"])
 cols = st.columns(5)
 for i, lang in enumerate(TRADUCCIONES.keys()):
-if cols[i % 5].button(TRADUCCIONES[lang]["bandera"], key=f"b_{lang}", use_container_width=True):
-st.session_state.idioma = lang
-st.session_state.nivel = None
-st.rerun()
+    if cols[i % 5].button(TRADUCCIONES[lang]["bandera"], key=f"b_{lang}", use_container_width=True):
+        st.session_state.idioma = lang
+        st.session_state.nivel = None
+        st.rerun()
 st.divider()
 st.subheader(t["instruccion"])
 if st.button(t["rojo"], type="primary", use_container_width=True):
-st.session_state.nivel = "ROJO"
-cola_global.append({"hora": datetime.now(ZONA_MX).strftime("%H:%M:%S"), "nivel": "ROJO", "idioma": st.session_state.idioma, "sintomas": "⚠️ ALERTA ROJA INMEDIATA", "rec": "🚨 Atención inmediata en sala de choque.", "audio_bytes": None, "audio_mime": None})
+    st.session_state.nivel = "ROJO"
+    cola_global.append({"hora": datetime.now(ZONA_MX).strftime("%H:%M:%S"), "nivel": "ROJO", "idioma": st.session_state.idioma, "sintomas": "ALERTA ROJA INMEDIATA", "rec": "Atencion inmediata en sala de choque.", "audio_bytes": None, "audio_mime": None})
 if st.button(t["amarillo"], use_container_width=True):
-st.session_state.nivel = "AMARILLO"
+    st.session_state.nivel = "AMARILLO"
 if st.button(t["verde"], use_container_width=True):
-st.session_state.nivel = "VERDE"
+    st.session_state.nivel = "VERDE"
 if st.session_state.nivel == "ROJO":
-st.error(t["msg_rojo"])
+    st.error(t["msg_rojo"])
 elif st.session_state.nivel in ["AMARILLO", "VERDE"]:
-st.info(t["msg_mic"])
-voz = st.audio_input("Voz / Voice")
-txt = st.text_area("Síntomas", placeholder=t["placeholder"], label_visibility="collapsed")
-if st.button(t["btn_enviar"], type="primary"):
-if txt.strip() or voz is not None:
-with st.spinner(t["procesando"]):
-sintomas_es, rec_es = escuchar_y_traducir(txt, voz, st.session_state.idioma)
-b_audio = voz.getvalue() if voz is not None else None
-m_audio = (voz.type or "audio/wav") if voz is not None else None
-cola_global.append({"hora": datetime.now(ZONA_MX).strftime("%H:%M:%S"), "nivel": st.session_state.nivel, "idioma": st.session_state.idioma, "sintomas": sintomas_es, "rec": rec_es, "audio_bytes": b_audio, "audio_mime": m_audio})
-st.success(t["msg_exito"])
-else:
-st.warning(t["msg_vacio"])
+    st.info(t["msg_mic"])
+    voz = st.audio_input("Voz / Voice")
+    txt = st.text_area("Sintomas", placeholder=t["placeholder"], label_visibility="collapsed")
+    if st.button(t["btn_enviar"], type="primary"):
+        if txt.strip() or voz is not None:
+            with st.spinner(t["procesando"]):
+                sintomas_es, rec_es = escuchar_y_traducir(txt, voz, st.session_state.idioma)
+                b_audio = voz.getvalue() if voz is not None else None
+                m_audio = (voz.type or "audio/wav") if voz is not None else None
+                cola_global.append({"hora": datetime.now(ZONA_MX).strftime("%H:%M:%S"), "nivel": st.session_state.nivel, "idioma": st.session_state.idioma, "sintomas": sintomas_es, "rec": rec_es, "audio_bytes": b_audio, "audio_mime": m_audio})
+            st.success(t["msg_exito"])
+        else:
+            st.warning(t["msg_vacio"])
