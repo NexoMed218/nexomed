@@ -168,20 +168,17 @@ vista_actual = st.query_params.get("vista", "paciente")
 if vista_actual == "doctor":
     st.title("💻 NexoMed — Panel Doctor")
     st.caption("Vista exclusiva para recepción médica y personal de salud.")
-    
     col_btn1, col_btn2 = st.columns(2)
     if col_btn1.button("🔄 Actualizar lista", type="primary"):
         st.rerun()
     if col_btn2.button("🗑️ Limpiar toda la lista"):
         cola_global.clear()
         st.rerun()
-
     if not cola_global:
         st.info("No hay pacientes en espera en este momento.")
     else:
         prioridad = {"ROJO": 1, "AMARILLO": 2, "VERDE": 3}
         pacientes_ordenados = sorted(cola_global, key=lambda x: prioridad[x["nivel"]])
-        
         for idx, p in enumerate(pacientes_ordenados):
             with st.container(border=True):
                 c1, c2, c3 = st.columns(3)
@@ -195,16 +192,16 @@ if vista_actual == "doctor":
                 if p["audio_bytes"] is not None:
                     c2.audio(p["audio_bytes"], format=p["audio_mime"])
                 c3.info(p["rec"])
-if c3.button("✅ Marcar como atendido", key=f"atender_{idx}{p['hora']}"):
-    cola_global.remove(p)
-    st.rerun()
-else:
+if c3.button("✅ Marcar como atendido", key=f"atender_{idx}_{p['hora']}"):
+cola_global.remove(p)
+st.rerun()
+st.stop()
 t = TRADUCCIONES[st.session_state.idioma]
 st.title("🏥 NexoMed")
 st.caption(t["subtitulo"])
 cols = st.columns(5)
 for i, lang in enumerate(TRADUCCIONES.keys()):
-if cols[i % 5].button(TRADUCCIONES[lang]["bandera"], key=f"b{lang}", use_container_width=True):
+if cols[i % 5].button(TRADUCCIONES[lang]["bandera"], key=f"b_{lang}", use_container_width=True):
 st.session_state.idioma = lang
 st.session_state.nivel = None
 st.rerun()
