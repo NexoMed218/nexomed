@@ -1,3 +1,4 @@
+
 import streamlit as st
 from datetime import datetime, timedelta, timezone
 from google import genai
@@ -36,7 +37,7 @@ TRADUCCIONES = {
         "msg_exito": "✅ Symptoms sent and translated.", "msg_vacio": "⚠️ Write or record symptoms."
     },
     "Náhuatl": {
-        "bandera": "🇲🇽 Náhuatl", "subtitulo": "Motlahtolpalehuiliz tlen pahpatiliztli",
+        "bandera": 🌽 Náhuatl", "subtitulo": "Motlahtolpalehuiliz tlen pahpatiliztli",
         "instruccion": "Xikpejpena kenijkatsa timokokoa:",
         "verde": "🟢 Tsikitsin kokolistli", "amarillo": "🟡 Tlahko kokolistli", "rojo": "🔴 NIMAN TLAPALEHUILISTLI",
         "msg_rojo": "🚨 YOTLATITLANKEH TLAHTOLI IPAN TEPATIANI. Ximokahua nikan.",
@@ -46,7 +47,7 @@ TRADUCCIONES = {
         "msg_exito": "✅ Yotlatitlankeh motlahtol ipan tepatiani.", "msg_vacio": "⚠️ Xikijkuilo o xikijto tlen timokokoa."
     },
     "Hñähñu (Otomí)": {
-        "bandera": "🇲🇽 Hñähñu", "subtitulo": "Ra ñäki pa ra 'ñethi",
+        "bandera": 🌵 Hñähñu", "subtitulo": "Ra ñäki pa ra 'ñethi",
         "instruccion": "Huahni te'ä gi tu:",
         "verde": "🟢 Ts'ʉtho ra ñ'u", "amarillo": "🟡 Madetho ra ñ'u", "rojo": "🔴 NT'A'MI PA RA 'ÑETHI",
         "msg_rojo": "🚨 XÄ MÄHNÄ RA 'ÑETHI. 'Bʉi gekua.",
