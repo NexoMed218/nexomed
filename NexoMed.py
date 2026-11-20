@@ -17,7 +17,7 @@ cola_global = obtener_cola_global()
 
 TRADUCCIONES = {
     "Español": {
-        "bandera": "🇲🇽 Español", "subtitulo": "Tu puente de comunicación médica",
+        "bandera": "🇲🇽  Español", "subtitulo": "Tu puente de comunicación médica",
         "instruccion": "Seleccione su nivel de malestar:",
         "verde": "🟢 Malestar Leve", "amarillo": "🟡 Malestar Moderado", "rojo": "🔴 EMERGENCIA INMEDIATA",
         "msg_rojo": "🚨 ALERTA ENVIADA AL MÉDICO. Permanezca en su lugar.",
@@ -37,7 +37,7 @@ TRADUCCIONES = {
         "msg_exito": "✅ Symptoms sent and translated.", "msg_vacio": "⚠️ Write or record symptoms."
     },
     "Náhuatl": {
-        "bandera": "🌽 Náhuatl", "subtitulo": "Motlahtolpalehuiliz tlen pahpatiliztli",
+        "bandera": "NAH Náhuatl", "subtitulo": "Motlahtolpalehuiliz tlen pahpatiliztli",
         "instruccion": "Xikpejpena kenijkatsa timokokoa:",
         "verde": "🟢 Tsikitsin kokolistli", "amarillo": "🟡 Tlahko kokolistli", "rojo": "🔴 NIMAN TLAPALEHUILISTLI",
         "msg_rojo": "🚨 YOTLATITLANKEH TLAHTOLI IPAN TEPATIANI. Ximokahua nikan.",
@@ -47,7 +47,7 @@ TRADUCCIONES = {
         "msg_exito": "✅ Yotlatitlankeh motlahtol ipan tepatiani.", "msg_vacio": "⚠️ Xikijkuilo o xikijto tlen timokokoa."
     },
     "Hñähñu (Otomí)": {
-        "bandera": "🌵 Hñähñu", "subtitulo": "Ra ñäki pa ra 'ñethi",
+        "bandera": "OTO Hñähñu", "subtitulo": "Ra ñäki pa ra 'ñethi",
         "instruccion": "Huahni te'ä gi tu:",
         "verde": "🟢 Ts'ʉtho ra ñ'u", "amarillo": "🟡 Madetho ra ñ'u", "rojo": "🔴 NT'A'MI PA RA 'ÑETHI",
         "msg_rojo": "🚨 XÄ MÄHNÄ RA 'ÑETHI. 'Bʉi gekua.",
